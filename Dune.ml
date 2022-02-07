@@ -18,14 +18,13 @@ let _ =
     let xl = ref (Random.int 150) in 
 
     let set_coul t =
-    match t with
-    | Air -> set_color sky_color
-    | Sable -> set_color yellow
-    | Balle -> set_color black
-    in
+        match t with
+            | Air -> set_color sky_color
+            | Sable -> set_color yellow
+            | Balle -> set_color black in
 
     for i = 0 to Array.length screen-1 do
-        if !currentlh >= !lhmax
+        if !currentlh >= !lhmax 
         then currentlh := !currentlh -1
         else currentlh := !currentlh +1;
         
@@ -38,8 +37,10 @@ let _ =
         then begin
             lhmax := (Random.int 150) + 50;
             xl := i + (Random.int ((Array.length screen)-1 -i))
-            end
+        end
+
     done;
+    
     for i = 0 to Array.length screen -1 do
         for j = 0 to Array.length screen.(0)-1 do
             begin
