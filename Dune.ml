@@ -8,7 +8,7 @@ type case = Air | Sable | Balle;;
 
 let _ =
     open_graph " 500x500";
-    let screen = Array.make_matrix 500 500 Air in
+    let screen = Array.make_matrix 500 500 Sable in
     
     plot 50 50;
     lineto 20 20;
@@ -18,7 +18,7 @@ let _ =
     match t with
     | Air -> set_color blue
     | Sable -> set_color yellow
-    | Balle -> set_color green
+    | Balle -> set_color black
     in
 
 
