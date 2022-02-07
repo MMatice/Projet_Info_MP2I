@@ -8,7 +8,7 @@ type case = Air | Sable | Balle;;
 
 let _ =
     open_graph " 500x500";
-    let screen = Array.make_matrix 500 500 Sable in
+    let screen = Array.make_matrix 500 500 Air in
     
     plot 50 50;
     lineto 20 20;
