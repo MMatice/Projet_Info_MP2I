@@ -9,6 +9,7 @@ type case = Air | Sable | Balle;;
 let sky_color = rgb 52 146 235 (*COULEUR CIEL  *)
 let velocity = ref 0 (* Pour gérer la vitesse *)
 let ylastballe = ref 0 (* position du dernier balle*)
+let ylastdune = ref 0
 let xpos = ref 0 
 let contact_check x y a =
     not (a.(x).(y - 5) = Sable || a.(x - 5).(y) = Sable || a.(x + 5).(y) = Sable || a.(x).(y) = Sable) (* version primaire de la gravité *)
@@ -22,17 +23,23 @@ let capture x y = (* prend une capture sans la boule  *)
     fill_circle x !ylastballe 5;   (* l'ancienne balle *)
     let a = get_image 1 0 1000 500 in
     draw_image a 0 0;
+    set_color sky_color;
+    let previous_x = current_x() in 
+    let previous_y = current_y() in
+    moveto 999 0;
+    lineto 999 500; 
+    moveto previous_x previous_y; 
     set_color green;             (* Dessine la nouvelle *)
     fill_circle x y 5;
     xpos := !xpos + 1 
-let fill i k abs screen = (* remplit la ligne pour les points noirs *)
+let fill i k abs = (* remplit la ligne pour les points noirs *)
+    set_color yellow;
     for j = k to !abs + 20 do
             moveto i j;
             if point_color i j = black 
             then begin 
                 lineto i 0;
                 abs := j;
-                screen.(i).(j) <- Sable
                 end;
         done
 
@@ -57,12 +64,13 @@ let _ =
         let a = 50+ 25 in (*le i est pour décoré il sert à rien  *)
         curveto (current_x(),Random.int 100 + 100) 
         (current_x() + a, Random.int 100 + 200 + pos) (* pos ne sert à rien c'est juste pour pas que trace_curve soit appelle directement mais considérer une fonction*)
-        (current_x() + a +10,current_y());
+        (current_x() + a +10,!ylastdune);
         (*on en fait deux d'affiler avec l'idée davoir concave convexe  *)
 
         curveto (current_x(),Random.int 200 - current_y()) 
         (current_x() + a, current_y() - Random.int 50 - 50) 
-        (current_x() + a +10,current_y());
+        (current_x() + a +10,!ylastdune);
+        print_int (current_y ())
     in
     
 
@@ -81,6 +89,8 @@ let _ =
         curveto (current_x(),Random.int 200 - current_y()) 
         (current_x() + a, current_y() - Random.int 50 - 50) 
         (current_x() + a +10,current_y());
+
+        ylastdune := current_y();
     done;
     set_color yellow;
     (*
@@ -88,9 +98,9 @@ let _ =
     on va chercher tout les points noirs puis on va tracer des lingnes jaune comme le ricard  *)
     let abs = ref 100 in
     moveto 0 !abs;
-    for i = 0 to Array.length screen - 1 do (* opti un peu l'affiche en évitant de se taper les 500 pixels de chaque ligne*)
-        if !abs < 30 then fill i 0 abs screen
-        else fill i (!abs - 30) abs screen;
+    for i = 0 to 850 do (* opti un peu l'affiche en évitant de se taper les 500 pixels de chaque ligne*)
+        if !abs < 30 then fill i 0 abs
+        else fill i (!abs - 30) abs;
     done;
     while true do
         (*let touche_sable = ref false in      sera utile plus tard normalement *)
@@ -102,7 +112,7 @@ let _ =
             gravite := (contact_check !x !y screen);
             if !velocity > -1 then velocity := !velocity - 1;    
                                                                     (* en chute libre naturelle la vélocité est diminué de -1 et est de -1 au max*)
-            if button_down () then velocity := !velocity - 1; (* si on veut forcer la velocité de la balle*)
+            if button_down () then velocity := !velocity + 1; (* si on veut forcer la velocité de la balle*)
             end
         else Printf.printf "contact";
         if !velocity < -5 then (* velocité max de -5*)
@@ -112,6 +122,12 @@ let _ =
         capture !x !y; (* met a jour visuellement la position en y de la balle*)
         if !xpos mod 170 = 0 then begin (* en gros cette partie gère la génération des nouvelles dunes PS les printfs ne servent a rien*)
             trace_curve 15;
+            abs := 100;
+            moveto 0 !abs;
+            for i = 680 to 850 do (* opti un peu l'affiche en évitant de se taper les 500 pixels de chaque ligne*)
+                if !abs < 30 then fill i 0 abs
+                else fill i (!abs - 30) abs;
+            done;
             Printf.printf "curve"
             end
 
