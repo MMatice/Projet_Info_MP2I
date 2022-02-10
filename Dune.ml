@@ -11,11 +11,21 @@ let velocity = ref 0 (* Pour gérer la vitesse *)
 let ylastballe = ref 0 (* position du dernier balle*)
 let ylastdune = ref 0
 let xpos = ref 0 
-let contact_check x y a =
-    not (a.(x).(y - 5) = Sable || a.(x - 5).(y) = Sable || a.(x + 5).(y) = Sable || a.(x).(y) = Sable) (* version primaire de la gravité *)
+let contact = ref false
+let abs x = if x <= 0 then -x else x
 let go_down y =  (* Prend les coord actual et decr de velocity qui peut etre négatif en y  *)
     ylastballe := !y;
-    y := !y + !velocity
+    if !velocity > 0 then
+        begin
+        if point_color 50 (!y + 5 + !velocity) <> yellow then
+        y := !y + !velocity
+        end
+    else
+        if (point_color 50 (!y - 5 + !velocity)) <> yellow then
+        begin
+        
+        y := !y + !velocity;
+        end
 
     
 let capture x y = (* prend une capture sans la boule  *)
@@ -46,7 +56,6 @@ let fill i k abs = (* remplit la ligne pour les points noirs *)
 
 let _ =
     open_graph " 1000x500"; (*1000x500  pour que la génération procédurale soit bien en amont du gameplay et donc que le joueur ne soit pas impacté par la génération des dunes *)
-    let screen = Array.make_matrix 500 500 Air in 
     let y = ref 250 in (* Hauteur de départ de la balle et gerera la hauteur de la balle
                                dans le temps*)
     let x = ref 50 in (* x correspdant à la balle, on ne le change pas mais c'est 
@@ -104,21 +113,15 @@ let _ =
     done;
     while true do
         (*let touche_sable = ref false in      sera utile plus tard normalement *)
-        let gravite = ref (contact_check !x !y screen) in
         (* on regarde si la balle est en contact avec le sol, plus tard on pourra imaginer
         un facteur vitesse qui permet déplacer les dunes  *)
-        if !gravite then
-            begin
-            gravite := (contact_check !x !y screen);
-            if !velocity > -1 then velocity := !velocity - 1;    
-                                                                    (* en chute libre naturelle la vélocité est diminué de -1 et est de -1 au max*)
-            if button_down () then velocity := !velocity + 1; (* si on veut forcer la velocité de la balle*)
-            end
-        else Printf.printf "contact";
+        if !velocity > -8 then velocity := !velocity - 1;    
+        (* en chute libre naturelle la vélocité est diminué de -1 et est de -1 au max*)
+            if button_down () then velocity := !velocity + 3; 
         if !velocity < -5 then (* velocité max de -5*)
             velocity := - 5;
         go_down y; (* ajuste juste la position avec la velocité*)
-        sleepf 0.05; (* pour que le jeu se termine pas en 0.001s xd*)
+        sleepf 0.02; (* pour que le jeu se termine pas en 0.001s xd*)
         capture !x !y; (* met a jour visuellement la position en y de la balle*)
         if !xpos mod 170 = 0 then begin (* en gros cette partie gère la génération des nouvelles dunes PS les printfs ne servent a rien*)
             trace_curve 15;
