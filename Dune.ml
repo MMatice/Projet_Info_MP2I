@@ -13,8 +13,11 @@ let ylastdune = ref 0
 let xpos = ref 0 
 let contact = ref false
 let abs x = if x <= 0 then -x else x
+let perdu = ref false
+let boost = ref 100
 let go_down y =  (* Prend les coord actual et decr de velocity qui peut etre négatif en y  *)
     ylastballe := !y;
+    begin
     if !velocity > 0 then
         begin
         if point_color 50 (!y + 5 + !velocity) <> yellow then
@@ -23,9 +26,12 @@ let go_down y =  (* Prend les coord actual et decr de velocity qui peut etre né
     else
         if (point_color 50 (!y - 5 + !velocity)) <> yellow then
         begin
-        
-        y := !y + !velocity;
+        y := !y + !velocity
         end
+        else boost := !boost + 1
+        
+    end;
+    if point_color 50 (!y - 6) = yellow && point_color 50 (!y + 6) = yellow then perdu := true
 
     
 let capture x y = (* prend une capture sans la boule  *)
@@ -111,13 +117,26 @@ let _ =
         if !abs < 30 then fill i 0 abs
         else fill i (!abs - 30) abs;
     done;
-    while true do
+    while !perdu = false do
         (*let touche_sable = ref false in      sera utile plus tard normalement *)
         (* on regarde si la balle est en contact avec le sol, plus tard on pourra imaginer
         un facteur vitesse qui permet déplacer les dunes  *)
         if !velocity > -8 then velocity := !velocity - 1;    
         (* en chute libre naturelle la vélocité est diminué de -1 et est de -1 au max*)
-            if button_down () then velocity := !velocity + 3; 
+        if button_down () then
+             begin
+                 velocity := !velocity + 3;
+                 boost := !boost - 2;
+                 if !boost < 0 then perdu := true  
+             end;
+        let tempx = current_x () in
+        let tempy = current_y () in
+        moveto 500 400;
+        set_color sky_color;
+        fill_rect 500 400 100 50;
+        set_color green;
+        draw_string (string_of_int !boost);
+        moveto tempx tempy;
         if !velocity < -5 then (* velocité max de -5*)
             velocity := - 5;
         go_down y; (* ajuste juste la position avec la velocité*)
@@ -141,3 +160,4 @@ let _ =
         (* Regarde si une touche du CLAVIER (d'autres fonction de la lib ne regarde que la souris)
            est presser et si c'est le cas la balle descend si elle touche du sable elle descend pas*)
     done;
+    Printf.printf "PERDU"
